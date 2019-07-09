@@ -1,0 +1,10 @@
+node_modules/
+
+auth.json
+Champion/
+ChampionBuild/
+champion.json
+item.json
+runes.json
+url.js
+build.js
