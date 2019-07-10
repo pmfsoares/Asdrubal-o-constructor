@@ -1,6 +1,5 @@
 const logger = require('winston');
 const Discord = require('discord.js');
-const doAsync = require('doasync');
 var {prefix, token} = require('./auth.json');
 
 const request = require('request');
@@ -51,7 +50,7 @@ client.login(token);
 client.on('message', message => {
     if(message.author.bot) return;
     if(message.channel.name != "builds") return;
-    else if(message.channel.name == "builds" && message.content.startsWith("!build")){
+    else if(message.channel.name == "builds" && message.content.startsWith("!build ")){
         const args = message.content.split(' ');
         const author = message.member;
         console.log(args);
@@ -124,9 +123,6 @@ function sendBuild(channel){
     path_role = `./ChampionBuild/${champBuild.id}_${champBuild.role}.json`;
 
     //Verification if
-    /*fs.access(`./ChampionBuild/${champBuild.id}_${champBuild.role}.json`, fs.constants.F_OK, (err) => {
-      console.log(`Clasula do role ./ChampionBuild/${champBuild.id}_${champBuild.role}.json ${err ? 'does not exist' : 'exists' }`);
-      if(!err){ */
     if(fs.existsSync(path_role)){
         champBuild = require(`./ChampionBuild/${champBuild.id}_${champBuild.role}.json`);
         console.log(champBuild);
@@ -134,11 +130,6 @@ function sendBuild(channel){
         createMsg(channel, champBuild);
         return;
     }
-    //});
-    /*
-    fs.access(`./Champion/${champBuild.id}.json`, fs.constants.F_OK, (err) => {
-        console.log(`Clasula do role ./Champion/${champBuild.id}.json ${err ? 'does not exist' : 'exists' }`);
-        if(!err){ */
     if(fs.existsSync(path_build)){
             build = require(`./Champion/${champBuild.id}.json`);
             builds = build[champBuild.role];
@@ -149,29 +140,22 @@ function sendBuild(channel){
             createMsg(channel, champBuild);
             return;
     }
-    /*});
-    fs.access(`./Champion/${champBuild.id}.json`, fs.constants.F_OK, (err) => {
-        console.log(`./Champion/${champBuild.id}.json ${err ? 'does not exist' : 'exists' }`);
-        if(!err){ */
     if(!(fs.existsSync(path_build)) && !(fs.existsSync(path_role))){
-/*        fs.access(`./ChampionBuild/${champBuild.id}_${champBuild.role}.json`, fs.constants.F_OK, (err) => {
-            console.log(`./ChampionBuild/${champBuild.id}_${champBuild.role}.json ${err ? 'does not exist' : 'exists' }`);
-                if(!err){ */
-                    getPage( (html) => {
-                        console.log("parsing");
-                        champ = JSON.parse(parsePage(html));
-                        build = champ.championProfile.championOverview[1];
-                        fs.writeFile(`./Champion/${champBuild.id}.json`, JSON.stringify(build), 'utf8', function(err){
-                            if(err) throw err;
-                        });
-                        builds = build[champBuild.role];
-                        createBuild(builds);
-                        fs.writeFile(`./ChampionBuild/${champBuild.id}_${champBuild.role}.json`, JSON.stringify(champBuild), 'utf8', function(err){
-                            if(err) throw err;
-                        });
-                        createMsg(channel, champBuild);
-                    });
-                }
+        getPage( (html) => {
+            console.log("parsing");
+            champ = JSON.parse(parsePage(html));
+            build = champ.championProfile.championOverview[1];
+            fs.writeFile(`./Champion/${champBuild.id}.json`, JSON.stringify(build), 'utf8', function(err){
+                if(err) throw err;
+            });
+            builds = build[champBuild.role];
+            createBuild(builds);
+            fs.writeFile(`./ChampionBuild/${champBuild.id}_${champBuild.role}.json`, JSON.stringify(champBuild), 'utf8', function(err){
+                if(err) throw err;
+            });
+            createMsg(channel, champBuild);
+        });
+    }
 }
 function createBuild(builds){
     champBuild.item1 = itemName(builds["rec_starting_items"].items, 1);
