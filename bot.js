@@ -1,6 +1,5 @@
 const logger = require('winston');
 const Discord = require('discord.js');
-const doAsync = require('doasync');
 var {prefix, token} = require('./auth.json');
 
 const request = require('request');
@@ -51,7 +50,7 @@ client.login(token);
 client.on('message', message => {
     if(message.author.bot) return;
     if(message.channel.name != "builds") return;
-    else if(message.channel.name == "builds" && message.content.startsWith("!build")){
+    else if(message.channel.name == "builds" && message.content.startsWith("!build ")){
         const args = message.content.split(' ');
         const author = message.member;
         console.log(args);
