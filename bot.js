@@ -142,7 +142,7 @@ function sendBuild(channel){
     }
     if(!(fs.existsSync(path_build)) && !(fs.existsSync(path_role))){
         getPage( (html) => {
-            console.log("parsing");
+            console.log("None of the files exist, parsing");
             champ = JSON.parse(parsePage(html));
             build = champ.championProfile.championOverview[1];
             fs.writeFile(`./Champion/${champBuild.id}.json`, JSON.stringify(build), 'utf8', function(err){
@@ -170,11 +170,12 @@ function createMsg(channel, champBuild){
     const msg = new Discord.RichEmbed()
           .setColor('#0099ff')
           .setTitle(`${champBuild.name} Build`)
-          .setImage(champBuild.image)
+          .setThumbnail(champBuild.image)
           .setURL(`${champBuild.url}`)
           .setAuthor(`U.GG`)
           .addField(`Starting Items`, champBuild.item1, true)
           .addField(`Core Items`, champBuild.item2, true)
+          .addBlankField()
           .addBlankField()
           .addField(`Option 1`, champBuild.item3, true)
           .addField(`Option 2`, champBuild.item4, true)
