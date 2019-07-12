@@ -165,6 +165,7 @@ function createBuild(builds){
     champBuild.item4 = itemName(builds["item_options_2"], 0);
     champBuild.item5 = itemName(builds["item_options_3"], 0);
     champBuild.runes = runesName(builds["rec_runes"]);
+    champBuild.skill_path = skill_path(builds["rec_skill_path"]);
     champBuild.url = `${url}${champBuild.name}${role_url}`;
     champBuild.image = `${champions[champBuild.id].thumbnail_url}`;
     console.log(champBuild);
@@ -182,6 +183,8 @@ function createMsg(channel, champBuild){
           .addField(`**Option 2**`, champBuild.item4, true)
           .addField(`**Option 3**`, champBuild.item5, true)
           .addBlankField()
+          .addField(`**Skill Path**`, champBuild.skill_path, true)
+          .addBlankField()
           .addField(`**${champBuild.runes.main}**`, champBuild.runes.main_perks ,true)
           .addField(`**${champBuild.runes.sub}**`, champBuild.runes.sub_perks ,true);
     channel.send(msg);
@@ -191,7 +194,8 @@ function itemName(build, x){
     let outputStr = "";
     if(x){
         build.forEach(function(item){
-            outputStr += (data[item].name);
+            outputStr +=
+                (data[item].name);
              outputStr += "\n";
          });
      }else if(!x){
@@ -233,3 +237,11 @@ function runesName(builds){
     }
     return runas;
 };
+function skill_path(rec){
+    let skill_path = '';
+    for(var i=1; i < rec.items.length; i++){
+        (i % 5 == 0 || i == 1) ? skill_path += ` **${rec.items[i]}** ` : skill_path += ` ${rec.items[i]} `;
+        (i != (rec.items.length-1)) ? skill_path += `=>` : skill_path += ` `;
+    }
+    return skill_path;
+}
