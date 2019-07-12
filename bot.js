@@ -18,6 +18,7 @@ const role_supp = "/build?role=support";
 
 
 var {data} = require('./item.json');
+var runes = require('./runes.json');
 var tmp_champ = require('./champions.json');
 const champions = tmp_champ.data;
 
@@ -163,8 +164,10 @@ function createBuild(builds){
     champBuild.item3 = itemName(builds["item_options_1"], 0);
     champBuild.item4 = itemName(builds["item_options_2"], 0);
     champBuild.item5 = itemName(builds["item_options_3"], 0);
+    champBuild.runes = runesName(builds["rec_runes"]);
     champBuild.url = `${url}${champBuild.name}${role_url}`;
     champBuild.image = `${champions[champBuild.id].thumbnail_url}`;
+    console.log(champBuild);
 }
 function createMsg(channel, champBuild){
     const msg = new Discord.RichEmbed()
@@ -173,13 +176,14 @@ function createMsg(channel, champBuild){
           .setThumbnail(champBuild.image)
           .setURL(`${champBuild.url}`)
           .setAuthor(`U.GG`)
-          .addField(`Starting Items`, champBuild.item1, true)
-          .addField(`Core Items`, champBuild.item2, true)
+          .addField(`**Starting Items**`, champBuild.item1, true)
+          .addField(`**Core Items**`, champBuild.item2, true)
+          .addField(`**Option 1**`, champBuild.item3, true)
+          .addField(`**Option 2**`, champBuild.item4, true)
+          .addField(`**Option 3**`, champBuild.item5, true)
           .addBlankField()
-          .addBlankField()
-          .addField(`Option 1`, champBuild.item3, true)
-          .addField(`Option 2`, champBuild.item4, true)
-          .addField(`Option 3`, champBuild.item5, true);
+          .addField(`**${champBuild.runes.main}**`, champBuild.runes.main_perks ,true)
+          .addField(`**${champBuild.runes.sub}**`, champBuild.runes.sub_perks ,true);
     channel.send(msg);
     console.log(msg);
 }
@@ -198,15 +202,34 @@ function itemName(build, x){
      }
      return outputStr;
  };
+function runesName(builds){
+    let runas = new Object;
+    runas.main = runes[builds.primary_style].name;
+    runas.main_id = builds.primary_style;
+    runas.sub = runes[builds.sub_style].name;
+    runas.sub_id = builds.sub_style;
+    runas.main_perks = new Array();
+    runas.sub_perks = new Array();
 
-
-
-
-
-
-
-
-
-
-
-
+    for(key in runes){
+        if(key == runas.main_id){
+            for(r in runes[key].slots){
+                for(rec in builds.active_perks){
+                    if(runes[key].slots[r].runes[builds.active_perks[rec]] != undefined){
+                        runas.main_perks.push(runes[key].slots[r].runes[builds.active_perks[rec]].key);
+                    }
+                }
+            }
+        }
+        else if(key == runas.sub_id){
+            for(r in runes[key].slots){
+                for(rec in builds.active_perks){
+                    if(runes[key].slots[r].runes[builds.active_perks[rec]] != undefined){
+                        runas.sub_perks.push(runes[key].slots[r].runes[builds.active_perks[rec]].key);
+                    }
+                }
+            }
+        }
+    }
+    return runas;
+};
