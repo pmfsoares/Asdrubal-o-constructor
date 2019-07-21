@@ -1,12 +1,12 @@
 const logger = require('winston');
 const Discord = require('discord.js');
+const gm = require('gm');
 var {prefix, token} = require('./auth.json');
 
 const request = require('request');
 const cheerio = require('cheerio');
 const fs = require('fs');
 const url = "https://u.gg/lol/champions/";
-const url_icon = "http://ddragon.leagueoflegends.com/cdn/9.13.1/img/item/";
 const icon_suffix = ".png";
 const champ_thumb = "http://ddragon.leagueoflegends.com/cdn/img/champion/loading/";
 
@@ -171,24 +171,53 @@ function createBuild(builds){
     console.log(champBuild);
 }
 function createMsg(channel, champBuild){
-    const msg = new Discord.RichEmbed()
-          .setColor('#0099ff')
-          .setTitle(`${champBuild.name} Build`)
-          .setThumbnail(champBuild.image)
-          .setURL(`${champBuild.url}`)
-          .setAuthor(`U.GG`)
-          .addField(`**Starting Items**`, champBuild.item1, true)
-          .addField(`**Core Items**`, champBuild.item2, true)
-          .addField(`**Option 1**`, champBuild.item3, true)
-          .addField(`**Option 2**`, champBuild.item4, true)
-          .addField(`**Option 3**`, champBuild.item5, true)
-          .addBlankField()
-          .addField(`**Skill Path**`, champBuild.skill_path, true)
-          .addBlankField()
-          .addField(`**${champBuild.runes.main}**`, champBuild.runes.main_perks ,true)
-          .addField(`**${champBuild.runes.sub}**`, champBuild.runes.sub_perks ,true);
-    channel.send(msg);
-    console.log(msg);
+    let main_str = '', sub_str = '',
+        file_name = `${champBuild.id}_${champBuild.role}.png`,
+        file = `./${file_name}`;
+    for(i in champBuild.runes.main_perks){
+       console.log(champBuild.runes.main_perks[i].name);
+       main_str += `${champBuild.runes.main_perks[i].name}\n`;
+    }
+    for(ii in champBuild.runes.sub_perks){
+        sub_str += `${champBuild.runes.sub_perks[ii].name}\n`;       
+        console.log(champBuild.runes.sub_perks[ii].name);
+    }
+    try{
+        runes_img(champBuild, file);
+    }catch(err){
+        console.log("Erro na criacao da imagem");
+        console.log(err);
+    }
+    finally{
+        let msg;
+        try{
+            msg = new Discord.RichEmbed()
+                .setColor('#0099ff')
+                .setTitle(`${champBuild.name} Build`)
+                .setThumbnail(champBuild.image)
+                .setURL(`${champBuild.url}`)
+                .setAuthor(`U.GG`)
+                .addField(`**Starting Items**`, champBuild.item1, true)
+                .addField(`**Core Items**`, champBuild.item2, true)
+                .addField(`**Option 1**`, champBuild.item3, true)
+                .addField(`**Option 2**`, champBuild.item4, true)
+                .addField(`**Option 3**`, champBuild.item5, true)
+                .addBlankField()
+                .addField(`**Skill Path**`, champBuild.skill_path, true)
+                .addBlankField()
+                .addField(`**${champBuild.runes.main}**`, main_str ,true)
+                .addField(`**${champBuild.runes.sub}**`, sub_str ,true)
+                .attachFile(file)
+                .setImage(`attachment://${file_name}`);
+        }catch(err){
+            console.log("Erro na criacao da msg");
+            console.log(err);
+        }
+        finally{
+            channel.send(msg);
+                console.log(msg);
+        }
+    }
 }
 function itemName(build, x){
     let outputStr = "";
@@ -196,16 +225,16 @@ function itemName(build, x){
         build.forEach(function(item){
             outputStr +=
                 (data[item].name);
-             outputStr += "\n";
+            outputStr += "\n";
          });
-     }else if(!x){
-         build.forEach(function(item){
-             outputStr += (data[item.item_id].name);
-             outputStr += "\n";
-         });
-     }
-     return outputStr;
- };
+    }else if(!x){
+        build.forEach(function(item){
+            outputStr += (data[item.item_id].name);
+            outputStr += "\n";
+        });
+    }
+    return outputStr;
+};
 function runesName(builds){
     let runas = new Object;
     runas.main = runes[builds.primary_style].name;
@@ -220,7 +249,12 @@ function runesName(builds){
             for(r in runes[key].slots){
                 for(rec in builds.active_perks){
                     if(runes[key].slots[r].runes[builds.active_perks[rec]] != undefined){
-                        runas.main_perks.push(runes[key].slots[r].runes[builds.active_perks[rec]].key);
+                        let tmp_rune = new Object;
+                        tmp_rune.name = runes[key].slots[r].runes[builds.active_perks[rec]].name;
+                        tmp_rune.key  = runes[key].slots[r].runes[builds.active_perks[rec]].key;
+                        tmp_rune.icon  = runes[key].slots[r].runes[builds.active_perks[rec]].icon;
+                        runas.main_perks.push(tmp_rune);
+                        console.log(runas.main_perks);
                     }
                 }
             }
@@ -229,7 +263,12 @@ function runesName(builds){
             for(r in runes[key].slots){
                 for(rec in builds.active_perks){
                     if(runes[key].slots[r].runes[builds.active_perks[rec]] != undefined){
-                        runas.sub_perks.push(runes[key].slots[r].runes[builds.active_perks[rec]].key);
+                        let tmp_rune = new Object;
+                         tmp_rune.name = runes[key].slots[r].runes[builds.active_perks[rec]].name;
+                        tmp_rune.key  = runes[key].slots[r].runes[builds.active_perks[rec]].key;
+                        tmp_rune.icon =runes[key].slots[r].runes[builds.active_perks[rec]].icon;
+                        runas.sub_perks.push(tmp_rune);
+                        console.log(runas.sub_perks);
                     }
                 }
             }
@@ -239,9 +278,38 @@ function runesName(builds){
 };
 function skill_path(rec){
     let skill_path = '';
-    for(var i=1; i < rec.items.length; i++){
-        (i % 5 == 0 || i == 1) ? skill_path += ` **${rec.items[i]}** ` : skill_path += ` ${rec.items[i]} `;
+    for(var i=0; i < rec.items.length; i++){
+        (i % 5 == 0 || i == 0) ? skill_path += ` **${rec.items[i]}** ` : skill_path += ` ${rec.items[i]} `;
         (i != (rec.items.length-1)) ? skill_path += `=>` : skill_path += ` `;
     }
     return skill_path;
+}
+function runes_img(build, file_name){
+    
+    let main = build.runes.main_perks,
+        sub  = build.runes.sub_perks,
+        prefix_path = "./runes/";
+
+    console.log("Starting");
+    gm()
+        .in('-page', '+0+0')
+        .in(prefix_path + main[0].icon)
+        .in('-page', '+32+128')
+        .in(prefix_path + main[1].icon)
+        .in('-page', '+32+192')
+        .in(prefix_path + main[2].icon)
+        .in('-page', '+32+256')
+        .in(prefix_path + main[3].icon)
+        .in('-page', '+128+128')
+        .in(prefix_path + sub[0].icon)
+        .in('-page', '+128+192')
+        .in(prefix_path + sub[1].icon)
+        .background('transparent')
+        .mosaic()
+        .write(file_name, function(err){
+            if(err) console.log(err);
+            else if(!err){
+                return 1;
+            }
+        });
 }
